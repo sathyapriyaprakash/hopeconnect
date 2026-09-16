@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Browse Events - Volunteer & NGO Portal</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="css/styles.css" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar navbar-expand-lg navbar-custom sticky-top">
+    <div class="container">
+      <a class="navbar-brand navbar-brand-logo" href="index.html">
+        <i class="bi bi-heart-pulse-fill text-primary"></i>
+        <span>HopeConnect</span>
+      </a>
+      <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarContent">
+        <ul class="navbar-nav mx-auto mb-2 mb-lg-0 gap-1">
+          <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="about.html">About Us</a></li>
+          <li class="nav-item"><a class="nav-link active" href="events.html">Browse Events</a></li>
+        </ul>
+        <div id="navAuthSection"></div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Page Header & Filter Bar -->
+  <section class="py-4 bg-light border-bottom">
+    <div class="container">
+      <div class="row align-items-center mb-4">
+        <div class="col-md-6">
+          <h1 class="fw-bold mb-1">Explore Volunteer Events</h1>
+          <p class="text-muted mb-0">Find community drives, plantation campaigns, tutoring, and animal rescues near you.</p>
+        </div>
+        <div class="col-md-6 mt-3 mt-md-0">
+          <div class="row g-2">
+            <div class="col-8">
+              <div class="input-group">
+                <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                <input type="text" id="searchInput" class="form-control border-start-0 ps-0" placeholder="Search by title, keyword or location...">
+              </div>
+            </div>
+            <div class="col-4">
+              <select id="cityFilter" class="form-select">
+                <option value="All">All Cities</option>
+                <option value="Mumbai">Mumbai</option>
+                <option value="Bengaluru">Bengaluru</option>
+                <option value="Delhi">Delhi</option>
+                <option value="Hyderabad">Hyderabad</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Category Filter Pills -->
+      <div class="d-flex flex-wrap gap-2">
+        <button class="filter-pill active" data-category="All">All Categories</button>
+        <button class="filter-pill" data-category="Environment">Environment</button>
+        <button class="filter-pill" data-category="Education">Education</button>
+        <button class="filter-pill" data-category="Animal Welfare">Animal Welfare</button>
+        <button class="filter-pill" data-category="Community Service">Community Service</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Events Catalog Grid -->
+  <section class="py-5">
+    <div class="container">
+      <div class="row" id="eventsGrid">
+        <!-- Rendered by js/events.js -->
+        <div class="col-12 text-center py-5">
+          <div class="spinner-border text-primary" role="status"></div>
+          <p class="mt-2 text-muted">Loading events catalog...</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container text-center small text-muted">
+      &copy; 2026 Volunteer & NGO Event Coordination Portal. CSE Mini Project.
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/main.js"></script>
+  <script src="js/events.js"></script>
+</body>
+</html>

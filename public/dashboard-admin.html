@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard - Volunteer & NGO Portal</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="css/styles.css" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar navbar-expand-lg navbar-custom sticky-top">
+    <div class="container">
+      <a class="navbar-brand navbar-brand-logo" href="index.html">
+        <i class="bi bi-heart-pulse-fill text-primary"></i>
+        <span>HopeConnect</span>
+      </a>
+      <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarContent">
+        <ul class="navbar-nav mx-auto mb-2 mb-lg-0 gap-1">
+          <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="about.html">About Us</a></li>
+          <li class="nav-item"><a class="nav-link" href="events.html">Browse Events</a></li>
+        </ul>
+        <div id="navAuthSection"></div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Admin Dashboard Container -->
+  <section class="py-5" id="adminDashboard">
+    <div class="container">
+      <!-- Header -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h2 class="fw-bold mb-1"><i class="bi bi-shield-check text-primary me-2"></i>System Administration Console</h2>
+          <p class="text-muted mb-0">Platform overview, user management, event moderation, and audit logs.</p>
+        </div>
+      </div>
+
+      <!-- Quick Platform Stats -->
+      <div class="row g-4 mb-4">
+        <div class="col-6 col-lg-3">
+          <div class="stat-card">
+            <div class="stat-icon indigo"><i class="bi bi-people-fill"></i></div>
+            <div>
+              <div class="stat-value" id="adminTotalUsers">0</div>
+              <div class="stat-label">Total Accounts</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-6 col-lg-3">
+          <div class="stat-card">
+            <div class="stat-icon emerald"><i class="bi bi-person-heart"></i></div>
+            <div>
+              <div class="stat-value" id="adminTotalVolunteers">0</div>
+              <div class="stat-label">Volunteers</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-6 col-lg-3">
+          <div class="stat-card">
+            <div class="stat-icon amber"><i class="bi bi-building"></i></div>
+            <div>
+              <div class="stat-value" id="adminTotalNGOs">0</div>
+              <div class="stat-label">Verified NGOs</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-6 col-lg-3">
+          <div class="stat-card">
+            <div class="stat-icon cyan"><i class="bi bi-calendar-event"></i></div>
+            <div>
+              <div class="stat-value" id="adminTotalEvents">0</div>
+              <div class="stat-label">Total Events</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Management Tabs -->
+      <div class="custom-card p-4">
+        <ul class="nav nav-pills mb-4 border-bottom pb-3 gap-2" id="adminTab" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link active fw-bold px-3 py-2" id="users-tab" data-bs-toggle="tab" data-bs-target="#users-panel" type="button" role="tab">
+              <i class="bi bi-people me-1"></i> Users & NGOs
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold px-3 py-2" id="events-tab" data-bs-toggle="tab" data-bs-target="#events-panel" type="button" role="tab">
+              <i class="bi bi-calendar-range me-1"></i> All Platform Events
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold px-3 py-2" id="registrations-tab" data-bs-toggle="tab" data-bs-target="#registrations-panel" type="button" role="tab">
+              <i class="bi bi-card-checklist me-1"></i> Registrations Audit Log
+            </button>
+          </li>
+        </ul>
+
+        <div class="tab-content" id="adminTabContent">
+          <!-- Users Panel -->
+          <div class="tab-pane fade show active" id="users-panel" role="tabpanel" aria-labelledby="users-tab">
+            <div class="table-responsive">
+              <table class="table-custom">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Organization / City</th>
+                    <th>Joined Date</th>
+                    <th class="text-end">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="adminUsersTableBody">
+                  <tr><td colspan="7" class="text-center py-3">Loading users...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Events Panel -->
+          <div class="tab-pane fade" id="events-panel" role="tabpanel" aria-labelledby="events-tab">
+            <div class="table-responsive">
+              <table class="table-custom">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Event Title</th>
+                    <th>Organizer NGO</th>
+                    <th>Category</th>
+                    <th>Event Date</th>
+                    <th>Slots</th>
+                    <th class="text-end">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="adminEventsTableBody">
+                  <tr><td colspan="7" class="text-center py-3">Loading events...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Registrations Panel -->
+          <div class="tab-pane fade" id="registrations-panel" role="tabpanel" aria-labelledby="registrations-tab">
+            <div class="table-responsive">
+              <table class="table-custom">
+                <thead>
+                  <tr>
+                    <th>Reg #</th>
+                    <th>Volunteer Name & Email</th>
+                    <th>Event Title</th>
+                    <th>NGO Host</th>
+                    <th>Status</th>
+                    <th>Registration Date</th>
+                  </tr>
+                </thead>
+                <tbody id="adminRegistrationsTableBody">
+                  <tr><td colspan="6" class="text-center py-3">Loading audit records...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container text-center small text-muted">
+      &copy; 2026 Volunteer & NGO Event Coordination Portal. CSE Mini Project.
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/main.js"></script>
+  <script src="js/dashboard.js"></script>
+</body>
+</html>

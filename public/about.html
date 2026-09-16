@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About Us - Volunteer & NGO Event Coordination Portal</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="css/styles.css" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar navbar-expand-lg navbar-custom sticky-top">
+    <div class="container">
+      <a class="navbar-brand navbar-brand-logo" href="index.html">
+        <i class="bi bi-heart-pulse-fill text-primary"></i>
+        <span>HopeConnect</span>
+      </a>
+      <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarContent">
+        <ul class="navbar-nav mx-auto mb-2 mb-lg-0 gap-1">
+          <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+          <li class="nav-item"><a class="nav-link active" href="about.html">About Us</a></li>
+          <li class="nav-item"><a class="nav-link" href="events.html">Browse Events</a></li>
+        </ul>
+        <div id="navAuthSection"></div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- About Header -->
+  <section class="py-5 bg-light border-bottom">
+    <div class="container py-3 text-center max-w-2xl mx-auto">
+      <span class="hero-badge"><i class="bi bi-info-circle"></i> CSE Mini Project</span>
+      <h1 class="fw-bold display-5 mt-2">Connecting Passionate Volunteers with NGOs</h1>
+      <p class="text-muted lead">
+        An end-to-end event management ecosystem engineered with Node.js, Express, MySQL, and Bootstrap 5.
+      </p>
+    </div>
+  </section>
+
+  <!-- Mission & Vision -->
+  <section class="py-5">
+    <div class="container py-3">
+      <div class="row g-5 align-items-center">
+        <div class="col-lg-6">
+          <h2 class="fw-bold mb-3">Our Core Objective</h2>
+          <p class="text-muted leading-relaxed">
+            Non-Governmental Organizations (NGOs) perform vital social work but often struggle to attract, coordinate, and retain passionate volunteers. Similarly, individuals willing to contribute their time lack a centralized, transparent platform to discover upcoming drives.
+          </p>
+          <p class="text-muted leading-relaxed">
+            <strong>HopeConnect</strong> bridges this gap by enabling real-time event creation by verified NGOs, instant event discovery for volunteers, capacity control to prevent overcrowding, and complete administrator oversight.
+          </p>
+        </div>
+        <div class="col-lg-6">
+          <div class="custom-card p-4">
+            <h4 class="fw-bold mb-3"><i class="bi bi-cpu text-primary me-2"></i>Technical Architecture</h4>
+            <ul class="list-group list-group-flush border-0">
+              <li class="list-group-item bg-transparent border-0 px-0 d-flex gap-2">
+                <i class="bi bi-check-circle-fill text-success fs-5"></i>
+                <div><strong>Frontend:</strong> HTML5, Responsive Bootstrap 5.3, Custom CSS Variables, Modular ES6 JS.</div>
+              </li>
+              <li class="list-group-item bg-transparent border-0 px-0 d-flex gap-2">
+                <i class="bi bi-check-circle-fill text-success fs-5"></i>
+                <div><strong>Backend REST API:</strong> Node.js with Express.js Framework, MVC Design Pattern.</div>
+              </li>
+              <li class="list-group-item bg-transparent border-0 px-0 d-flex gap-2">
+                <i class="bi bi-check-circle-fill text-success fs-5"></i>
+                <div><strong>Database:</strong> Relational MySQL Database (`mysql2/promise` pool) with prepared SQL queries.</div>
+              </li>
+              <li class="list-group-item bg-transparent border-0 px-0 d-flex gap-2">
+                <i class="bi bi-check-circle-fill text-success fs-5"></i>
+                <div><strong>Security:</strong> bcryptjs password hashing and JWT token role-based authorization.</div>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- User Roles Workflow -->
+  <section class="py-5 bg-white border-top">
+    <div class="container py-3">
+      <div class="text-center max-w-xl mx-auto mb-5">
+        <h2 class="fw-bold">Platform Role Workflows</h2>
+        <p class="text-muted">Designed for three distinct user roles with full access controls.</p>
+      </div>
+
+      <div class="row g-4">
+        <div class="col-md-4">
+          <div class="custom-card p-4 h-100">
+            <div class="stat-icon emerald mb-3"><i class="bi bi-person-badge"></i></div>
+            <h4 class="fw-bold">Volunteer</h4>
+            <ul class="small text-muted ps-3 d-flex flex-column gap-2 mb-0">
+              <li>Register / Login account</li>
+              <li>Browse events with real-time filters</li>
+              <li>Register for events (prevents duplicates & full capacity)</li>
+              <li>Manage registrations on Volunteer Dashboard</li>
+              <li>Cancel registered events anytime</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="custom-card p-4 h-100">
+            <div class="stat-icon indigo mb-3"><i class="bi bi-building"></i></div>
+            <h4 class="fw-bold">NGO Organization</h4>
+            <ul class="small text-muted ps-3 d-flex flex-column gap-2 mb-0">
+              <li>Register NGO account with organization profile</li>
+              <li>Create new events with date, time, location, max slots & image</li>
+              <li>Edit or delete existing events</li>
+              <li>View real-time list of registered volunteer attendees</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="custom-card p-4 h-100">
+            <div class="stat-icon amber mb-3"><i class="bi bi-shield-lock"></i></div>
+            <h4 class="fw-bold">System Admin</h4>
+            <ul class="small text-muted ps-3 d-flex flex-column gap-2 mb-0">
+              <li>Access high-level system analytics & metrics</li>
+              <li>Manage all registered Volunteers and NGOs</li>
+              <li>Monitor and delete inappropriate events</li>
+              <li>Audit all active registrations across the platform</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <div class="text-center small text-muted">
+        &copy; 2026 Volunteer & NGO Event Coordination Portal. CSE Mini Project.
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
