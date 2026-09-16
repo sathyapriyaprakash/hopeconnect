@@ -2,7 +2,7 @@
 
 A complete, full-stack web application developed for Computer Science & Engineering (CSE) mini-project. The system bridges the gap between Non-Governmental Organizations (NGOs) hosting community initiatives and volunteers seeking opportunities to contribute to social causes.
 
-🌐 **Live Deployed Website**: [https://temporary-zippy-chestnut-zdhisat.vercel.app](https://temporary-zippy-chestnut-zdhisat.vercel.app)  
+🌐 **Live Deployed Website**: [https://hopeconnect-dwfcaeky6-sathya-ef66.vercel.app/](https://hopeconnect-dwfcaeky6-sathya-ef66.vercel.app/)  
 📦 **GitHub Repository**: [https://github.com/sathyapriyaprakash/hopeconnect](https://github.com/sathyapriyaprakash/hopeconnect)
 
 ---
