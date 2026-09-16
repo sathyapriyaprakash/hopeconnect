@@ -1,11 +1,17 @@
 const mysql = require('mysql2/promise');
-const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const fs = require('fs');
 const bcrypt = require('bcryptjs');
 const config = require('./config');
 
 let dbInstance = null;
+let sqlite3 = null;
+
+try {
+  sqlite3 = require('sqlite3').verbose();
+} catch (e) {
+  console.warn('⚠️ Native sqlite3 module not available, using in-memory store adapter.');
+}
 
 async function initDb() {
   if (dbInstance) return dbInstance;
@@ -52,58 +58,171 @@ async function initDb() {
 
     } catch (err) {
       console.warn('⚠️ Could not connect to MySQL Server:', err.message);
-      console.log('🔄 Automatically falling back to local SQLite database mode...');
+      console.log('🔄 Automatically falling back to local SQLite/Memory database mode...');
     }
   }
 
-  // Fallback to SQLite (Writable location for Vercel/Serverless: /tmp/volunteer_ngo.db)
-  let dbPath = path.join(__dirname, '..', 'database', 'volunteer_ngo.db');
-  if (process.env.VERCEL || process.env.TMPDIR || process.env.NODE_ENV === 'production') {
-    dbPath = path.join('/tmp', 'volunteer_ngo.db');
-  }
+  // SQLite DB setup
+  if (sqlite3) {
+    let dbPath = path.join(__dirname, '..', 'database', 'volunteer_ngo.db');
+    if (process.env.VERCEL || process.env.TMPDIR || process.env.NODE_ENV === 'production') {
+      dbPath = path.join('/tmp', 'volunteer_ngo.db');
+    }
 
-  const dbDir = path.dirname(dbPath);
-  if (!fs.existsSync(dbDir)) {
+    const dbDir = path.dirname(dbPath);
+    if (!fs.existsSync(dbDir)) {
+      try {
+        fs.mkdirSync(dbDir, { recursive: true });
+      } catch (e) {
+        dbPath = ':memory:';
+      }
+    }
+
     try {
-      fs.mkdirSync(dbDir, { recursive: true });
+      const sqliteDb = new sqlite3.Database(dbPath);
+
+      dbInstance = {
+        isSqlite: true,
+        query: (sql, params = []) => {
+          return new Promise((resolve, reject) => {
+            let sqliteSql = sql
+              .replace(/AUTO_INCREMENT/gi, 'AUTOINCREMENT')
+              .replace(/ENUM\([^)]+\)/gi, 'TEXT');
+
+            const isSelect = sqliteSql.trim().toUpperCase().startsWith('SELECT');
+
+            if (isSelect) {
+              sqliteDb.all(sqliteSql, params, (err, rows) => {
+                if (err) return reject(err);
+                resolve({ rows });
+              });
+            } else {
+              sqliteDb.run(sqliteSql, params, function (err) {
+                if (err) return reject(err);
+                resolve({ rows: [], insertId: this.lastID, affectedRows: this.changes });
+              });
+            }
+          });
+        },
+        close: () => {
+          return new Promise((resolve) => sqliteDb.close(resolve));
+        }
+      };
+
+      console.log('✅ SQLite Database ready at:', dbPath);
+      await createTablesIfNotExist(dbInstance);
+      return dbInstance;
     } catch (e) {
-      dbPath = ':memory:';
+      console.warn('Failed initializing file sqlite, falling back to memory mock store:', e.message);
     }
   }
 
-  const sqliteDb = new sqlite3.Database(dbPath);
+  // Pure In-Memory Fallback Adapter if native sqlite3 binary is completely omitted by serverless bundler
+  dbInstance = createInMemoryStore();
+  await autoSeedData(dbInstance);
+  return dbInstance;
+}
 
-  dbInstance = {
+function createInMemoryStore() {
+  const store = { users: [], events: [], registrations: [] };
+  let userId = 1, eventId = 1, regId = 1;
+
+  return {
     isSqlite: true,
-    query: (sql, params = []) => {
-      return new Promise((resolve, reject) => {
-        let sqliteSql = sql
-          .replace(/AUTO_INCREMENT/gi, 'AUTOINCREMENT')
-          .replace(/ENUM\([^)]+\)/gi, 'TEXT');
+    query: async (sql, params = []) => {
+      const s = sql.trim().toUpperCase();
 
-        const isSelect = sqliteSql.trim().toUpperCase().startsWith('SELECT');
+      if (s.startsWith('CREATE TABLE') || s.startsWith('DELETE FROM')) {
+        return { rows: [], insertId: 0, affectedRows: 0 };
+      }
 
-        if (isSelect) {
-          sqliteDb.all(sqliteSql, params, (err, rows) => {
-            if (err) return reject(err);
-            resolve({ rows });
-          });
-        } else {
-          sqliteDb.run(sqliteSql, params, function (err) {
-            if (err) return reject(err);
-            resolve({ rows: [], insertId: this.lastID, affectedRows: this.changes });
-          });
+      if (s.includes('COUNT(*) AS TOTAL') || s.includes('COUNT(*) AS COUNT')) {
+        if (s.includes('USERS')) {
+          if (s.includes("ROLE = 'VOLUNTEER'")) return { rows: [{ total: store.users.filter(u => u.role === 'volunteer').length, count: store.users.filter(u => u.role === 'volunteer').length }] };
+          if (s.includes("ROLE = 'NGO'")) return { rows: [{ total: store.users.filter(u => u.role === 'ngo').length, count: store.users.filter(u => u.role === 'ngo').length }] };
+          return { rows: [{ total: store.users.length, count: store.users.length }] };
         }
-      });
-    },
-    close: () => {
-      return new Promise((resolve) => sqliteDb.close(resolve));
+        if (s.includes('EVENTS')) return { rows: [{ total: store.events.length, count: store.events.length }] };
+        if (s.includes('REGISTRATIONS')) return { rows: [{ total: store.registrations.length, count: store.registrations.length }] };
+      }
+
+      if (s.startsWith('SELECT') && s.includes('FROM USERS')) {
+        if (params.length > 0 && s.includes('WHERE EMAIL =')) {
+          const matched = store.users.filter(u => u.email === params[0]);
+          return { rows: matched };
+        }
+        if (params.length > 0 && s.includes('WHERE ID =')) {
+          const matched = store.users.filter(u => u.id == params[0]);
+          return { rows: matched };
+        }
+        return { rows: store.users };
+      }
+
+      if (s.startsWith('SELECT') && s.includes('FROM EVENTS')) {
+        if (params.length > 0 && s.includes('WHERE E.ID =')) {
+          const matched = store.events.filter(e => e.id == params[0]);
+          return { rows: matched };
+        }
+        return { rows: store.events };
+      }
+
+      if (s.startsWith('SELECT') && s.includes('FROM REGISTRATIONS')) {
+        return { rows: store.registrations };
+      }
+
+      if (s.startsWith('INSERT INTO USERS')) {
+        const u = {
+          id: userId++,
+          name: params[0],
+          email: params[1],
+          password: params[2],
+          role: params[3],
+          phone: params[4],
+          organization_name: params[5],
+          city: params[6],
+          bio: params[7],
+          created_at: new Date().toISOString()
+        };
+        store.users.push(u);
+        return { rows: [], insertId: u.id, affectedRows: 1 };
+      }
+
+      if (s.startsWith('INSERT INTO EVENTS')) {
+        const e = {
+          id: eventId++,
+          ngo_id: params[0],
+          title: params[1],
+          category: params[2],
+          description: params[3],
+          event_date: params[4],
+          event_time: params[5],
+          location: params[6],
+          city: params[7],
+          max_volunteers: params[8],
+          available_slots: params[9],
+          image_url: params[10],
+          status: params[11] || 'Upcoming',
+          created_at: new Date().toISOString()
+        };
+        store.events.push(e);
+        return { rows: [], insertId: e.id, affectedRows: 1 };
+      }
+
+      if (s.startsWith('INSERT INTO REGISTRATIONS')) {
+        const r = {
+          id: regId++,
+          event_id: params[0],
+          volunteer_id: params[1],
+          status: params[2] || 'Registered',
+          registered_at: new Date().toISOString()
+        };
+        store.registrations.push(r);
+        return { rows: [], insertId: r.id, affectedRows: 1 };
+      }
+
+      return { rows: [], insertId: 0, affectedRows: 0 };
     }
   };
-
-  console.log('✅ SQLite Database ready at:', dbPath);
-  await createTablesIfNotExist(dbInstance);
-  return dbInstance;
 }
 
 async function createTablesIfNotExist(db) {
@@ -156,9 +275,8 @@ async function createTablesIfNotExist(db) {
       );
     `);
 
-    // Auto seed if empty
     const usersCount = await db.query('SELECT COUNT(*) as count FROM users');
-    const count = usersCount.rows ? usersCount.rows[0].count : (usersCount[0] ? usersCount[0][0].count : 0);
+    const count = usersCount.rows ? (usersCount.rows[0]?.count || usersCount.rows[0]?.total || 0) : 0;
     if (count === 0) {
       await autoSeedData(db);
     }
