@@ -2,6 +2,7 @@ const mysql = require('mysql2/promise');
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const fs = require('fs');
+const bcrypt = require('bcryptjs');
 const config = require('./config');
 
 let dbInstance = null;
@@ -10,9 +11,8 @@ async function initDb() {
   if (dbInstance) return dbInstance;
 
   // Try MySQL connection first if configured
-  if (config.db.type === 'mysql') {
+  if (config.db.type === 'mysql' && !process.env.VERCEL) {
     try {
-      // First try connecting to MySQL server
       const connection = await mysql.createConnection({
         host: config.db.host,
         port: config.db.port,
@@ -34,7 +34,6 @@ async function initDb() {
         queueLimit: 0
       });
 
-      // Test pool connection
       const testConn = await pool.getConnection();
       testConn.release();
 
@@ -43,26 +42,33 @@ async function initDb() {
       dbInstance = {
         isSqlite: false,
         query: async (sql, params = []) => {
-          const [rows, fields] = await pool.query(sql, params);
+          const [rows] = await pool.query(sql, params);
           return { rows, insertId: rows.insertId, affectedRows: rows.affectedRows };
         }
       };
 
-      // Ensure tables exist in MySQL
       await createTablesIfNotExist(dbInstance);
       return dbInstance;
 
     } catch (err) {
       console.warn('⚠️ Could not connect to MySQL Server:', err.message);
-      console.log('🔄 Automatically falling back to local SQLite database mode for smooth local execution...');
+      console.log('🔄 Automatically falling back to local SQLite database mode...');
     }
   }
 
-  // Fallback to SQLite
-  const dbPath = path.join(__dirname, '..', 'database', 'volunteer_ngo.db');
+  // Fallback to SQLite (Writable location for Vercel/Serverless: /tmp/volunteer_ngo.db)
+  let dbPath = path.join(__dirname, '..', 'database', 'volunteer_ngo.db');
+  if (process.env.VERCEL || process.env.TMPDIR || process.env.NODE_ENV === 'production') {
+    dbPath = path.join('/tmp', 'volunteer_ngo.db');
+  }
+
   const dbDir = path.dirname(dbPath);
   if (!fs.existsSync(dbDir)) {
-    fs.mkdirSync(dbDir, { recursive: true });
+    try {
+      fs.mkdirSync(dbDir, { recursive: true });
+    } catch (e) {
+      dbPath = ':memory:';
+    }
   }
 
   const sqliteDb = new sqlite3.Database(dbPath);
@@ -71,7 +77,6 @@ async function initDb() {
     isSqlite: true,
     query: (sql, params = []) => {
       return new Promise((resolve, reject) => {
-        // Convert MySQL standard queries to SQLite if necessary
         let sqliteSql = sql
           .replace(/AUTO_INCREMENT/gi, 'AUTOINCREMENT')
           .replace(/ENUM\([^)]+\)/gi, 'TEXT');
@@ -150,8 +155,67 @@ async function createTablesIfNotExist(db) {
         FOREIGN KEY (volunteer_id) REFERENCES users(id) ON DELETE CASCADE
       );
     `);
+
+    // Auto seed if empty
+    const usersCount = await db.query('SELECT COUNT(*) as count FROM users');
+    const count = usersCount.rows ? usersCount.rows[0].count : (usersCount[0] ? usersCount[0][0].count : 0);
+    if (count === 0) {
+      await autoSeedData(db);
+    }
   } catch (err) {
     console.error('Error creating database tables:', err.message);
+  }
+}
+
+async function autoSeedData(db) {
+  try {
+    const defaultPassword = await bcrypt.hash('password123', 10);
+    const users = [
+      ['System Administrator', 'admin@portal.org', defaultPassword, 'admin', '9876543210', 'Central Admin Hub', 'New Delhi', 'Platform Administrator'],
+      ['Green Earth Foundation', 'ngo@greenearth.org', defaultPassword, 'ngo', '9811223344', 'Green Earth Foundation', 'Mumbai', 'Dedicated to environmental conservation, tree planting, and beach cleanups.'],
+      ['Hope Education Trust', 'ngo@hopeedu.org', defaultPassword, 'ngo', '9822334455', 'Hope Education Trust', 'Bengaluru', 'Providing free tutoring, books, and digital literacy to underprivileged children.'],
+      ['Care & Compassion Care', 'ngo@carecompassion.org', defaultPassword, 'ngo', '9833445566', 'Care & Compassion Care', 'Delhi', 'Animal rescue, shelter management, and stray feeding initiatives.'],
+      ['Aarav Sharma', 'aarav@gmail.com', defaultPassword, 'volunteer', '9988776655', null, 'Mumbai', 'Passionate about nature, climate action, and community service.'],
+      ['Priya Patel', 'priya@gmail.com', defaultPassword, 'volunteer', '9977665544', null, 'Bengaluru', 'Computer Science student keen on teaching coding and basic tech to kids.'],
+      ['Rohan Verma', 'rohan@gmail.com', defaultPassword, 'volunteer', '9966554433', null, 'Delhi', 'Animal lover and active blood donor.'],
+      ['Sneha Reddy', 'sneha@gmail.com', defaultPassword, 'volunteer', '9955443322', null, 'Hyderabad', 'Youth volunteer enthusiast and emergency response volunteer.']
+    ];
+
+    for (const u of users) {
+      await db.query(
+        `INSERT INTO users (name, email, password, role, phone, organization_name, city, bio) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        u
+      );
+    }
+
+    const events = [
+      [2, 'Mega Coastal & Beach Cleanup 2026', 'Environment', 'Join hands with Green Earth Foundation to restore Juhu Beach.', '2026-10-15', '07:00:00', 'Juhu Beach, Near Ramada Inn', 'Mumbai', 50, 48, 'https://images.unsplash.com/photo-1618477461853-cf6ed80faba5?auto=format&fit=crop&w=800&q=80', 'Upcoming'],
+      [2, 'Urban Forest Tree Plantation Drive', 'Environment', 'Help us plant 500 native trees to create a green lungs zone.', '2026-11-05', '08:30:00', 'Aarey Colony Forest Reserve', 'Mumbai', 30, 28, 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&w=800&q=80', 'Upcoming'],
+      [3, 'Weekend STEM & Math Tutoring for Kids', 'Education', 'Volunteer teachers needed for primary school children.', '2026-10-20', '10:00:00', 'Hope Community Center, Koramangala', 'Bengaluru', 15, 14, 'https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=800&q=80', 'Upcoming'],
+      [4, 'Stray Dog Vaccination & Feeding Drive', 'Animal Welfare', 'Feed stray dogs and assist in anti-rabies vaccination tagging.', '2026-10-28', '09:00:00', 'Janakpuri Community Park Gate 3', 'Delhi', 25, 24, 'https://images.unsplash.com/photo-1548767797-d8c844163c4c?auto=format&fit=crop&w=800&q=80', 'Upcoming']
+    ];
+
+    for (const e of events) {
+      await db.query(
+        `INSERT INTO events (ngo_id, title, category, description, event_date, event_time, location, city, max_volunteers, available_slots, image_url, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        e
+      );
+    }
+
+    const regs = [
+      [1, 5, 'Registered'],
+      [1, 6, 'Registered'],
+      [2, 5, 'Registered'],
+      [3, 6, 'Registered']
+    ];
+
+    for (const r of regs) {
+      await db.query(`INSERT INTO registrations (event_id, volunteer_id, status) VALUES (?, ?, ?)`, r);
+    }
+
+    console.log('✅ Serverless DB Auto-Seeded Successfully!');
+  } catch (err) {
+    console.error('Auto-seed error:', err.message);
   }
 }
 
